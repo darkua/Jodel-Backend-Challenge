@@ -1,20 +1,23 @@
 # Backend Code Challenge
 
-A simple app in express using mongo as data storage and redis as memory cache, for storing and retriving user geo coordinates.
+A simple app in express using mongo as data storage and redis as memory cache, for storing and retrieving user geo coordinates.
 
-## Install && Run
+## Install & Run
 
 Get all code dependencies for the project
+
 `npm install`
 
 Start Redis and Mongo services
+
 `docker-compose up`
 
 Start app
+
 `npm run start`
 
 
-## Testing
+## Test
 
 Inside test directory you will find the end-to-end test, just run
 
@@ -30,8 +33,8 @@ Lets create an image for our app
 And go to directory ab, and if you lets build an image for ab also
 
 `cd ab`
-`docker build -t ab_app .`
 
+`docker build -t ab_app .`
 
 Now lets compose the demo
 
@@ -43,7 +46,7 @@ if you now go to
 
 you should see 5 jodels going for a walk, just like the picture:
 
-![jode_demo](./ab/jodel_demo.png)
+![jode_demo](./ab/jodel_demo.jpg)
 
 ## Extra & Cache
 
