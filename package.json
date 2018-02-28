@@ -4,9 +4,8 @@
   "description": "Jodel Challenge",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start app.js --watch --name app",
-    "test": "mocha --exit",
-    "log": "pm2 log app"
+    "start": "node app.js",
+    "test": "mocha --exit"
   },
   "repository": {
     "type": "git",

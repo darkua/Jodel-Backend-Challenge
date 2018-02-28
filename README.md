@@ -1,45 +1,58 @@
 # Backend Code Challenge
 
-Welcome!
+A simple app in express using mongo as data storage and redis as memory cache, for storing and retriving user geo coordinates.
 
-For this code challenge we would like you to write a simple NodeJS REST API project in [express.js](https://expressjs.com/) framework, and then extend it with some functionalities below.
+## Install && Run
 
+Get all code dependencies for the project
+`npm install`
 
-## Adding MongoDB
+Start Redis and Mongo services
+`docker-compose up`
 
-Write an API endpoint for saving a JSON object in MongoDB. Mongo DB should be running in a Docker Container.
-
-- Input:
-  - JSON Object
-- Output:
-  - 200 OK or error code
-
-Write also an API endpoint for getting a list of all previously saved JSON objects filtered by some field’s value, in pages, N objects per page:
-
-- Input:
-  - field’s value
-  - page number
-- Output:
-  - list of JSON objects (no more than N)
+Start app
+`npm run start`
 
 
-## Adding Tests
+## Testing
 
-Write end-to-end test(s) for these 2 endpoints.
+Inside test directory you will find the end-to-end test, just run
 
-Tests should be rerunnable and independent of their execution order. Make sure you test the most tricky cases.
+`npm run test`
+
+## Extra
+How about a simple client demo to use the api? since we are posting coordinates, it could be cool to see them on a map, so i made also some golang code (ab.go) in order to push coordinates to our server of random walking routes in berlin, kreuzberg, so it simulates jodels going for a walk. Lets dockerize everything so we can run it all together!
+
+Lets create an image for our app
+
+`docker build -t jodel_app .`
+
+And go to directory ab, and if you lets build an image for ab also
+
+`cd ab`
+`docker build -t ab_app .`
 
 
-## Adding Caching
+Now lets compose the demo
 
-Start Redis in Docker (same way as Mongo) and implement Redis caching for the second endpoint (get list).
+docker-compose -f docker-compose-demo.yaml up
+
+if you now go to 
+
+`http://localhost:3000`
+
+you should see 5 jodels going for a walk, just like the picture:
+
+![jode_demo](./ab/jodel_demo.png)
+
+## Extra & Cache
+
+The example is using polling to get results, from a endpoint that was more tought for some like the most recent something where there are much more gets then posts, it a normal world we would use websockets to push the results to client with pubsub redis or any other message queue system, but in order to illustrate the cache on the current system just activate the request to not skip cache, and you should see the jodels moving only according to cache timeout, 5s
+
+`http://localhost:3000/?cache`
 
 
-## Running everything
-
-Ensure that we're able to setup and run everything with a task runner or a similar tool both locally and in Docker environment. This means we expect to see a Dockerfile and docker-compose.yml files.
 
 
-## How to deliver the results
 
-Fork this repo and once you're done send us a link to a repo with your solution. The result should be your own repository on Github with instructions how to run tests.
+

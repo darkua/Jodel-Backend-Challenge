@@ -1,0 +1,102 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+	<meta http-equiv="content-type" content="tex
+	t/html; charset=UTF-8"/>
+
+	<title>HEETCH DRIVER GATEWAY DEMO</title>
+	<script src="http://maps.google.com/maps?file=api&amp;v=2&amp;sensor=false&amp;key=AIzaSyD4EIXlzwTNFdE3bvK3rxtmfmiffrrMRo8" type="text/javascript"></script>
+</head>
+<body onunload="GUnload()">
+	<!-- the message's input -->
+	<div id="map" style="width: 1024; height: 600px"></div>
+	<pre id="output"></pre>
+	<script>
+
+        //MAPPING
+        if (GBrowserIsCompatible()) {
+            //VARS
+            let drivers = []
+            let lastPoint = []
+
+            let N = 5
+            if(window.location.search.indexOf("cache") === -1){
+            	var query="page=1&no_cache";	
+            } else {
+            	var query="page=1";
+            }
+        
+            // polling for results
+            for (var i = N-1; i >= 0; i--) {
+            	let url = `http://localhost:3000/user/${i}/coordinates?${query}`;    
+            	setInterval(updateUser,1000,url)
+            }
+
+            function updateUser(url){
+            	fetch(url)
+            	.then((resp) => resp.json())
+            	.then((data) => {
+            		addPoint(data[0])
+            	});
+            }
+
+            function randColor(){
+            	return '#'+Math.floor(Math.random()*16777215).toString(16)
+            }
+
+            function addPoint(p) {
+            	marker = getMarker(p)
+            	marker.setPoint(new GLatLng(p.latitude,p.longitude))
+            	if(lastPoint[p.userID]!== undefined){
+                    //drawline
+                    let src = lastPoint[p.userID]
+                    let dest = p
+                    poly2 = new GPolyline([new GLatLng(src.latitude, src.longitude),
+                    	new GLatLng(dest.latitude, dest.longitude)],randColor());
+                    map.addOverlay(poly2);
+                  }
+                  lastPoint[p.userID] = p
+                }
+
+            //MAP RENDERING
+            var map = new GMap2(document.getElementById("map"),{zoomControl: true});
+            map.setCenter(new GLatLng(52.496,13.428),16);
+
+            var points = [
+            {"Latitude": 52.49789 , "Longitude": 13.4185},
+            {"Latitude": 52.494795, "Longitude": 13.422829},
+            {"Latitude": 52.49758 , "Longitude": 13.438446},
+            {"Latitude": 52.494611, "Longitude": 13.434006},
+            {"Latitude": 52.49906 , "Longitude": 13.42904}
+            ]
+
+            function addPossibleDestinations(){
+            	points.forEach((p)=>{
+            		let marker = new GMarker(new GLatLng(p.Latitude,p.Longitude));
+            		map.addOverlay(marker,G_START_ICON);
+            	})
+            }
+
+            function getMarker(p){
+            	if(drivers[p.userID]===undefined){
+            		let m = addCar(p)
+            		drivers[p.userID] = m
+            	}
+            	return drivers[p.userID]
+            }
+
+            function addCar(p){
+            	let car = new GIcon();
+            	car.image="./raccoon-logo.png"
+            	car.iconSize=new GSize(32,32);
+            	car.iconAnchor=new GPoint(16,16);
+            	let m = new GMarker(new GLatLng(p.Latitude,p.Longitude),{icon:car});
+            	map.addOverlay(m);
+            	return m
+            }
+
+            addPossibleDestinations()
+          }
+        </script>
+      </body>

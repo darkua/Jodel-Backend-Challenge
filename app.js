@@ -1,6 +1,6 @@
 /**
 	USER COORDINATES API
-**/
+  **/
 
 //http-api
 const express = require('express');
@@ -10,16 +10,16 @@ const routeValidator = require('express-route-validator');
 //Logging
 const morgan = require('morgan');
 const winston = require("winston");
-const level = process.env.LOG_LEVEL || 'debug';
+const level = process.env.LOG_LEVEL || 'info';
 const logger = new winston.Logger({
-    transports: [
-        new winston.transports.Console({
-            level: level,
-            timestamp: function () {
-                return (new Date()).toISOString();
-            }
-        })
-    ]
+  transports: [
+  new winston.transports.Console({
+    level: level,
+    timestamp: function () {
+      return (new Date()).toISOString();
+    }
+  })
+  ]
 });
 // Database
 const MONGO_PORT = process.env.MONGO_PORT || 27017; // redis port
@@ -51,7 +51,7 @@ const router = express.Router();
  * POST
  * USAGE: curl --header "Content-Type: application/json" --data '{"latitude": 42.1,"longitude":44.3}' -X POST http://127.0.0.1:3000/user/1/coordinates
  */
-const addCoordValidator = routeValidator.validate({
+ const addCoordValidator = routeValidator.validate({
   params: {
     id: { isRequired: true, isInt: true }
   },
@@ -66,11 +66,11 @@ const addCoordValidator = routeValidator.validate({
 
 router.post('/user/:id/coordinates',addCoordValidator,(req, res, next) => {
   let c = {
-		userID:req.params.id,
+    userID:req.params.id,
     latitude:req.body.latitude,
     longitude:req.body.longitude,
     updated_at: new Date().getTime()
-	};
+  };
   let collection = req.db.get('coordinates');
   collection.insert(c).then((result)=>{
     logger.debug('coord added');
@@ -84,16 +84,16 @@ router.post('/user/:id/coordinates',addCoordValidator,(req, res, next) => {
  *  Get all coordinates filtered by USER ID, with 20 results per page,
     ordered by the most recent
     USAGE : curl http://127.0.0.1:3000/user/1/coordinates\?page\=1
- */
-const PAGE_RESULTS = 1;
-const getCoordValidator = routeValidator.validate({
-  params: {
-    id:{isRequired:true,isInt:true}
-  },
-  query:{
-    page:{isRequired:true,isInt:{min:1}}
-  }
-});
+    */
+    const PAGE_RESULTS = 1;
+    const getCoordValidator = routeValidator.validate({
+      params: {
+        id:{isRequired:true,isInt:true}
+      },
+      query:{
+        page:{isRequired:true,isInt:{min:1}}
+      }
+    });
 //simple cache
 const cache = (req, res,next)=>{
   //check if no_cache set
@@ -117,18 +117,18 @@ const cache = (req, res,next)=>{
 };
 
 router.get('/user/:id/coordinates',getCoordValidator, cache, (req, res, next) => {
-  
+
   let skipN = (req.query.page !== undefined)?(req.query.page-1) * req.pagination : 0;
   let collection = req.db.get('coordinates');
   collection.find({userID:req.params.id},{limit:req.pagination,skip:skipN,sort:{"updated_at":-1}}).then((result)=>{
-      //add_to_cache_if_no_key
-      req.cache.set([req.originalUrl, JSON.stringify(result),"NX","EX", CACHE_TIMEOUT],(err)=>{
-        if(err !== null){
-          throw err;
-        }
-      });
-      logger.debug('req served from DATABASE',{key: req.originalUrl});
-      res.json(result);
+    //add_to_cache_if_no_key
+    req.cache.set([req.originalUrl, JSON.stringify(result),"NX","EX", CACHE_TIMEOUT],(err)=>{
+      if(err !== null){
+        throw err;
+      }
+    });
+    logger.debug('req served from DATABASE',{key: req.originalUrl});
+    res.json(result);
   }).catch((err)=>{
     next(err);
   });
@@ -139,30 +139,32 @@ const app = express();
 
 // Make db local to request
 app.use((req,res,next) => {
-    req.db = db;
-    req.cache = redisClient;
-    req.pagination = PAGE_RESULTS;
-    next();
+  req.db = db;
+  req.cache = redisClient;
+  req.pagination = PAGE_RESULTS;
+  next();
 });
 
 //Logging middleware exclude test 
 if(process.env.NODE_ENV !== "test"){
   app.use(morgan('dev', {
-      skip: function (req, res) {
-          return res.statusCode < 400
-      }, stream: process.stderr
+    skip: function (req, res) {
+      return res.statusCode < 400
+    }, stream: process.stderr
   }));
 
   app.use(morgan('dev', {
-      skip: function (req, res) {
-          return res.statusCode >= 400
-      }, stream: process.stdout
+    skip: function (req, res) {
+      return res.statusCode >= 400
+    }, stream: process.stdout
   }));  
 }
 
 app.use(bodyParser.json());
 app.use('/', router);
 
+//static files
+app.use(express.static('public'))
 
 //Error handler middlleware
 app.use((err, req, res, next) => {
